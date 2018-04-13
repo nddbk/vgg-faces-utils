@@ -263,8 +263,8 @@ def process(files, output):
                 alias,
             )
             links.append(entry)
-    #shuffle(links)
-    return retrieve([links[1500], links[3000]], output)
+    shuffle(links)
+    return retrieve(links, output)
 
 
 def load(d, o, r=None):
