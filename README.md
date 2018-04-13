@@ -27,7 +27,7 @@ git clone https://github.com/ndaidong/vgg-faces-utils.git
 tar -zxvf vgg_face_dataset.tar.gz -C vgg-faces-utils
 
 
-cd vgg-faces-loader
+cd vgg-faces-utils
 
 # create virtual environment
 python3 -m venv venv
@@ -42,8 +42,8 @@ source venv/bin/activate
 
 The process may take several days depending on the connectivity.
 
-It would try to download about 2.6 milions images from many resources. 
-However, we just expect to get about 1 milion. 
+It would try to download about 2.6 milions images from many resources.
+However, we just expect to get about 1 milion.
 Almost of links no longer available for right now.
 
 ![Downloading](https://i.imgur.com/w5Q6bF8.png)
