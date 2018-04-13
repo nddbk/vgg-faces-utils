@@ -21,14 +21,19 @@ You would get a file `vgg_face_dataset.tar.gz` that contains a `vgg_face_dataset
 ### Setup tools
 
 ```
-git clone https://github.com/ndaidong/vgg-faces-loader.git
+git clone https://github.com/ndaidong/vgg-faces-utils.git
+
+# extract compressed file into repo folder
+tar -zxvf vgg_face_dataset.tar.gz -C vgg-faces-utils
+
+
 cd vgg-faces-loader
 
-tar -zxvf vgg_face_dataset.tar.gz
-
+# create virtual environment
 python3 -m venv venv
 source venv/bin/activate
 
+# install packages
 (venv) pip install -r requirements
 
 # start processing
