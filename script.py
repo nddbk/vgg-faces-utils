@@ -33,11 +33,21 @@ Link = namedtuple('Link', [
 ])
 
 
-regex = re.compile('[^a-zA-Z0_9]')
+State = namedtuple('State', [
+    'current',
+    'total',
+    'success',
+    'failed',
+    'start_time'
+])
+
+
+REGEX = re.compile('[^a-zA-Z0_9]')
+LOG_FILE = '.process_log'
 
 
 def make_alias(txt=''):
-    return regex.sub('_', txt.lower())
+    return REGEX.sub('_', txt.lower())
 
 
 def normalize(val):
@@ -115,6 +125,70 @@ def savefile(content, link, output):
         print(err)
 
 
+def writelog(
+        current=0,
+        total=0,
+        success=0,
+        failed=0,
+        success_rate=0,
+        failed_rate=0,
+        start_time='Never',
+        current_time='Unknown',
+        duration=0
+        ):
+    lines = [
+        'Start at: {}'.format(start_time),
+        'Last update: {}'.format(current_time),
+        'Duration: {}'.format(duration),
+        'Processing: {}/{} items'.format(current, total),
+        'Success: {} (~{}%)'.format(success, success_rate),
+        'Failed: {} (~{}%)'.format(failed, failed_rate)
+    ]
+    text = '\n'.join(lines)
+
+    with open(LOG_FILE, 'w') as f:
+        f.write(text)
+
+
+def onload(content, entry, output, state):
+
+    savefile(content, entry, output)
+
+    current = state.current
+    total = state.total
+    success = state.success + 1
+    failed = state.failed
+    start_time = state.start_time
+
+    print('Handling item {}/{}'.format(current, total))
+
+    total_case = success + failed
+    success_rate = normalize(success * 100 / total_case)
+    failed_rate = normalize(failed * 100 / total_case)
+    print('Success: {} (~{}%)'.format(success, success_rate))
+    print('Failed: {} (~{}%)'.format(failed, failed_rate))
+
+    current_time = int(time())
+    strtime_start = ctime(start_time)
+    strtime_current = ctime(current_time)
+    duration = current_time - start_time
+    print('Start at: {}'.format(strtime_start))
+    print('Last update: {}'.format(strtime_current))
+    print('Duration: {}'.format(timedelta(seconds=duration)))
+
+    writelog(
+        current=current,
+        total=total,
+        success=success,
+        failed=failed,
+        success_rate=success_rate,
+        failed_rate=failed_rate,
+        start_time=strtime_start,
+        current_time=strtime_current,
+        duration=duration
+    )
+
+
 def retrieve(entries=[], output='./'):
     current = 0
     success = 0
@@ -122,35 +196,42 @@ def retrieve(entries=[], output='./'):
     total = len(entries)
     start_time = int(time())
     print('Total entries: {}'.format(total))
+
     for entry in entries:
         current += 1
         url = entry.url
         print('Retrieving data from "{}"...'.format(url))
         try:
-            res = request.urlopen(url, None, 15)
-            status = res.getcode()
-            info = res.info()
-            content_type = info['content-type']
-            if status != 200:
-                print('Link is not available: "{}"'.format(url))
-                failed += 1
-            elif not content_type.startswith('image/jp'):
-                print('Resource is not image: "{}"'.format(url))
-                failed += 1
+            state = State(
+                current,
+                total,
+                success,
+                failed,
+                start_time
+            )
+            fname = entry.alias + '_' + entry.id + '.jpg'
+            fpath = output + '/images/' + fname
+            if path.exists(fpath):
+                print('Already retrieved')
+                with open(fpath, 'rb') as f:
+                    content = f.read()
+                    success += 1
+                    onload(content, entry, output, state)
             else:
-                print('Handling item {}/{}'.format(current, total))
-                total_case = success + failed
-                success_rate = normalize(success * 100 / total_case)
-                failed_rate = normalize(failed * 100 / total_case)
-                current_time = int(time())
-                strtime = ctime(current_time)
-                duration = current_time - start_time
-                print('Since: {}, now: {}'.format(ctime(start_time), strtime))
-                print('Duration: {}'.format(timedelta(seconds=duration)))
-                print('Success: {} (~{}%)'.format(success, success_rate))
-                print('Failed: {} (~{}%)'.format(failed, failed_rate))
-                savefile(res.read(), entry, output)
-                success += 1
+                res = request.urlopen(url, None, 15)
+                status = res.getcode()
+                info = res.info()
+                content_type = info['content-type']
+                if status != 200:
+                    print('Link is not available: "{}"'.format(url))
+                    failed += 1
+                elif not content_type.startswith('image/jp'):
+                    print('Resource is not image: "{}"'.format(url))
+                    failed += 1
+                else:
+                    print('Retrieved successfully')
+                    success += 1
+                    onload(res.read(), entry, output, state)
         except Exception as err:
             failed += 1
             print('Error while downloading image "{}"'.format(url))
@@ -182,17 +263,19 @@ def process(files, output):
                 alias,
             )
             links.append(entry)
-    shuffle(links)
-    return retrieve(links, output)
+    #shuffle(links)
+    return retrieve([links[1500], links[3000]], output)
 
 
-def load(d, o):
+def load(d, o, r=None):
     files = glob.glob(d + '/*.txt')
-    if path.exists(o):
+    if path.exists(o) and r is not None:
         rmtree(o)
-    mkdir(o)
-    mkdir(o + '/images')
-    mkdir(o + '/labels')
+
+    if not path.exists(o):
+        mkdir(o)
+        mkdir(o + '/images')
+        mkdir(o + '/labels')
     return process(files, o)
 
 
@@ -208,6 +291,11 @@ def start():
         '--output',
         help='Path to output dir'
     )
+    parser.add_argument(
+        '-r',
+        '--reset',
+        help='Reset or not. Default: None'
+    )
     args = parser.parse_args()
     if not args.dir:
         print('Please specify path to source dir')
@@ -216,7 +304,8 @@ def start():
     else:
         entries = load(
             path.normpath(args.dir),
-            path.normpath(args.output)
+            path.normpath(args.output),
+            args.reset
         )
 
 
