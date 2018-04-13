@@ -34,7 +34,7 @@ python3 -m venv venv
 source venv/bin/activate
 
 # install packages
-(venv) pip install -r requirements
+(venv) pip install -r requirements.txt
 
 # start processing
 (venv) ./script.py -d vgg_face_dataset/files -o output
