@@ -1,0 +1,11 @@
+coverage>=4.5
+funcy>=1.0
+labelImg>=1.5
+lxml>=4.1
+pycodestyle>=2.3
+Pillow>=5.0
+PyQt5>=5.1
+requests>=2.8
+resources>=0.0.1
+sip>=4.1
+staty>=0.5
