@@ -9,3 +9,4 @@ requests>=2.8
 resources>=0.0.1
 sip>=4.1
 staty>=0.5
+tqdm>=4.42.0
