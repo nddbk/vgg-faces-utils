@@ -46,7 +46,7 @@ It would try to download about 2.6 milions images from many resources.
 However, we just expect to get about 1 milion.
 Almost of links no longer available for right now.
 
-![Downloading](https://i.imgur.com/w5Q6bF8.png)
+![Downloading](https://i.imgur.com/REDnoNu.png)
 
 
 # Update annotations with labelImg
@@ -61,7 +61,7 @@ To check and modify the labels after downloading finishes.
 
 Specify image dir and label dir to get:
 
-![labelImg](https://i.imgur.com/IZH6t72.png)
+![labelImg](https://i.imgur.com/piY9eZm.png)
 
 
 
